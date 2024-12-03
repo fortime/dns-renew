@@ -214,7 +214,6 @@ fn renew(
     tracing::debug!("current ip: {}", ip);
 
     if ips.contains(&ip) {
-
         return Ok(false);
     }
 
