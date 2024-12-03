@@ -1,0 +1,31 @@
+name: Docker
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  docker:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+      - name: Log in to the Container registry
+        uses: docker/login-action@master
+        with:
+          registry: https://ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@master
+        with:
+          push: true
+          tags: ghcr.io/fortime/dns-renew:${{ github.ref_name }}
+          file: docker/Dockerfile

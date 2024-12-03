@@ -1,0 +1,32 @@
+name: Check, build and test
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check-build-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: rustfmt
+      - name: Check format
+        run: cargo fmt --all --check
+      - name: Build
+        run: cargo build --verbose
+      - name: Test
+        run: cargo test --verbose
