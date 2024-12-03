@@ -1,0 +1,62 @@
+name = "foo.bar.com"
+renew_interval = "1m"
+shared = false
+
+[v4]
+enabled = true
+
+[v4.query_provider_type]
+#type = "DohGoogle"
+#url = "https://dns.alidns.com/resolve"
+#name_key = "name"
+#type = "DohIetf"
+#url = "https://dns.alidns.com/dns-query"
+#type = "Dns"
+#name_server_host = "223.5.5.5"
+#use_tcp = true
+type = "Dot"
+name_server_host = "dns.alidns.com"
+
+[v4.ip_provider_type]
+#type = "IfconfigIo"
+#url = "https://ifconfig.io/ip"
+#type = "Static"
+#ip = "192:168:1:123"
+type = "SslipIo"
+name_server_host = "ns.sslip.io"
+name_server_port = 53
+name = "ip.sslip.io"
+
+[v4.update_provider_type]
+type = "HttpPlainBody"
+credential = "cf"
+url = "https://api.cloudflare.com/client/v4/zones/zone_id/dns_records"
+method = "POST"
+content_type = "application/json"
+body_template = """{{
+  "comment": "",
+  "name": "{name}",
+  "proxied": false,
+  "settings": {{}},
+  "tags": [],
+  "ttl": 600,
+  "content": "{ip}",
+  "type": "A"
+}}"""
+
+[v6]
+enabled = true
+
+[v6.query_provider_type]
+type = "DohGoogle"
+url = "https://dns.alidns.com/resolve"
+name_key = "name"
+
+[v6.ip_provider_type]
+type = "Static"
+ip = "fe80::123:123:123:123"
+
+[v6.update_provider_type]
+type = "HttpGet"
+credential = "dhis"
+url_template = "https://is6.dhis.org/update?Update6to4V4=No?ipaddr={ip}"

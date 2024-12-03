@@ -1,0 +1,11 @@
+name_conf_dir = "/etc/dns-renew/name-conf.d/"
+name_state_dir = "/run/dns-renew/state/"
+
+[credentials.cf]
+type = "HttpBearerToken"
+token = "12345"
+
+[credentials.dhis]
+type = "HttpBasicAuth"
+username = "admin"
+password = "test"
