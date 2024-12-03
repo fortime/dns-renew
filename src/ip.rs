@@ -119,7 +119,7 @@ pub fn init_ip_provider(
     _config: &Config,
 ) -> Result<Box<dyn IpProvider>> {
     match ip_provider_type {
-        IpProviderType::Static { ip } => Ok(Box::new(StaticIpProvider(ip.clone()))),
+        IpProviderType::Static { ip } => Ok(Box::new(StaticIpProvider(*ip))),
         IpProviderType::IfconfigIo { url, timeout } => {
             Ok(Box::new(ifconfigio::IfconfigIoIpProvider {
                 url: url.clone(),
@@ -133,7 +133,7 @@ pub fn init_ip_provider(
             timeout,
         } => Ok(Box::new(sslipio::SslipIoIpProvider {
             name_server_host: name_server_host.clone(),
-            name_server_port: name_server_port.clone(),
+            name_server_port: *name_server_port,
             name: name.clone(),
             timeout: timeout.unwrap_or(DEFAULT_TIMEOUT),
         })),

@@ -85,11 +85,11 @@ fn run() -> Result<()> {
 
 fn next(interval: &Duration) -> Result<u64> {
     SystemTime::now()
-        .checked_add(interval.clone())
+        .checked_add(*interval)
         .ok_or_else(|| anyhow!("unable to get next time"))
         .and_then(|t| {
             t.duration_since(SystemTime::UNIX_EPOCH)
-                .with_context(|| format!("failed to get timestamp in creating NameState"))
+                .with_context(|| "failed to get timestamp in creating NameState".to_string())
         })
         .map(|t| t.as_secs())
 }
@@ -98,7 +98,7 @@ fn read_state(state_path: &PathBuf, name_conf: &NameConf) -> Result<Option<NameS
     let name_state = if state_path.exists() {
         Some(
             Figment::new()
-                .merge(Toml::file(&state_path))
+                .merge(Toml::file(state_path))
                 .extract::<NameState>()
                 .with_context(|| {
                     format!("failed to read from name state file: {:?}", state_path)

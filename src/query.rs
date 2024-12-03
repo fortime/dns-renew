@@ -61,7 +61,7 @@ mod dohgoogle {
             }
             Ok(response
                 .answer
-                .unwrap_or(vec![])
+                .unwrap_or_default()
                 .iter()
                 .map(|i| i.data)
                 .collect())
@@ -217,7 +217,7 @@ fn query(
     } else {
         RecordType::A
     };
-    let dns_response = client.query(&name, record_type, Some(is_v6))?;
+    let dns_response = client.query(name, record_type, Some(is_v6))?;
     Ok(dns_response
         .answers()
         .iter()
@@ -242,7 +242,7 @@ pub fn init_query_provider(
     match query_provider_type {
         QueryProviderType::Dns(dns_query_params) => Ok(Box::new(DnsQueryProvider {
             name_server_host: dns_query_params.name_server_host().clone(),
-            name_server_port: dns_query_params.name_server_port().clone(),
+            name_server_port: *dns_query_params.name_server_port(),
             timeout: dns_query_params.timeout().unwrap_or(DEFAULT_TIMEOUT),
             use_tcp: dns_query_params.use_tcp().unwrap_or(false),
         })),
@@ -259,7 +259,7 @@ pub fn init_query_provider(
         })),
         QueryProviderType::Dot(dot_query_params) => Ok(Box::new(DotQueryProvider {
             name_server_host: dot_query_params.name_server_host().clone(),
-            name_server_port: dot_query_params.name_server_port().clone(),
+            name_server_port: *dot_query_params.name_server_port(),
             timeout: dot_query_params.timeout().unwrap_or(DEFAULT_TIMEOUT),
         })),
     }

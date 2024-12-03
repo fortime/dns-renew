@@ -118,7 +118,7 @@ impl DnsClient {
     ) -> Result<DnsResponse> {
         let port = self
             .port
-            .unwrap_or_else(|| if self.is_tls { 853 } else { 53 });
+            .unwrap_or(if self.is_tls { 853 } else { 53 });
         let addrs = (self.host.as_str(), port)
             .to_socket_addrs()?
             .filter(|addr| match is_via_v6 {
