@@ -1,0 +1,39 @@
+name = "foo-cf.bar.com"
+renew_interval = "1m"
+shared = false
+
+[v4]
+enabled = true
+
+[v4.query_provider_type]
+type = "Dummy"
+
+[v4.ip_provider_type]
+type = "Static"
+ip = "192.168.1.123"
+
+[v4.update_provider_type]
+type = "Cloudflare"
+credential = "cf"
+zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
+proxied = true
+ttl = 300
+comment = "foo-cf"
+
+[v6]
+enabled = true
+
+[v6.query_provider_type]
+type = "Dummy"
+
+[v6.ip_provider_type]
+type = "Static"
+ip = "fe80::123:123:123:123"
+
+[v6.update_provider_type]
+type = "Cloudflare"
+credential = "cf"
+zone_id = "023e105f4ecef8ad9ca31a8372d0c353"
+proxied = true
+ttl = 300
+comment = "foo-cf"
