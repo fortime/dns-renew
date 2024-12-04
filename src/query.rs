@@ -20,6 +20,7 @@ mod dohgoogle {
     use serde::Deserialize;
 
     use super::QueryProvider;
+
     #[derive(Deserialize)]
     struct DohGoogleResponse {
         #[serde(rename = "Status")]
@@ -262,9 +263,18 @@ pub fn init_query_provider(
             name_server_port: *dot_query_params.name_server_port(),
             timeout: dot_query_params.timeout().unwrap_or(DEFAULT_TIMEOUT),
         })),
+        QueryProviderType::Dummy => Ok(Box::new(DummyQueryProvider)),
     }
 }
 
 pub trait QueryProvider {
     fn query(&self, name: &str, is_v6: bool) -> Result<Vec<IpAddr>>;
+}
+
+pub struct DummyQueryProvider;
+
+impl QueryProvider for DummyQueryProvider {
+    fn query(&self, _name: &str, _is_v6: bool) -> Result<Vec<IpAddr>> {
+        Ok(vec![])
+    }
 }

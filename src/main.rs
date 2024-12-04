@@ -74,9 +74,10 @@ fn run() -> Result<()> {
         .with_context(|| format!("{:?} not found", config.name_conf_dir()))?;
 
     for child in childrens {
+        let path = child.as_ref().map(|p| p.path().clone()).ok();
         match renew_name(child, &config) {
             Ok(Some(name)) => tracing::info!("renew {name} successfully"),
-            Ok(None) => tracing::debug!("skip entry"),
+            Ok(None) => tracing::debug!("skip path: {:?}", path),
             Err(e) => tracing::error!("failed to renew: {:?}", e),
         }
     }
@@ -219,8 +220,7 @@ fn renew(
 
     let update_provider =
         update::init_update_provider(name_providers_conf.update_provider_type(), config)?;
-    update_provider.update(name_conf.name(), ip)?;
-    Ok(true)
+    update_provider.update(name_conf.name(), ip)
 }
 
 fn main() {

@@ -73,11 +73,20 @@ pub enum UpdateProviderType {
         content_type: String,
         body_template: String,
     },
+    Cloudflare {
+        credential: String,
+        zone_id: String,
+        proxied: Option<bool>,
+        ttl: Option<u32>,
+        comment: Option<String>,
+    },
 }
 
 #[derive(Deserialize)]
 #[serde(tag = "type")]
 pub enum QueryProviderType {
+    /// For domains with waf enabled, there is no need to query its ips.
+    Dummy,
     Dns(DnsQueryParams),
     DohGoogle(DohGoogleQueryParams),
     DohIetf(DohIetfQueryParams),
