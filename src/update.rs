@@ -370,7 +370,7 @@ pub fn init_update_provider(
                 token,
                 zone_id: zone_id.clone(),
                 proxied: proxied.unwrap_or(false),
-                ttl: ttl.clone(),
+                ttl: *ttl,
                 comment: comment.clone(),
             }))
         }
