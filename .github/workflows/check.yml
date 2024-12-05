@@ -1,4 +1,4 @@
-name: Check, build and test
+name: Check
 
 on:
   push:
