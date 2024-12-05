@@ -2,6 +2,7 @@ use std::{
     fs::{self, DirEntry},
     io,
     path::PathBuf,
+    process,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
@@ -62,8 +63,7 @@ fn init_log(_args: &Args) -> Result<()> {
     Ok(())
 }
 
-fn run() -> Result<()> {
-    let args = Args::try_parse()?;
+fn run(args: Args) -> Result<()> {
     let config = init_config(&args)?;
 
     init_log(&args)?;
@@ -224,5 +224,9 @@ fn renew(
 }
 
 fn main() {
-    run().expect("run command failed");
+    let args = Args::parse();
+    if let Err(e) = run(args) {
+        eprintln!("run command failed: {e}");
+        process::exit(1);
+    }
 }
