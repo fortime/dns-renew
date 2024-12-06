@@ -22,6 +22,7 @@ mod ifconfigio {
     }
 
     impl IpProvider for IfconfigIoIpProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, is_v6: bool) -> Result<IpAddr> {
             let mut builder = Client::builder().timeout(self.timeout);
             if is_v6 {
@@ -63,6 +64,7 @@ mod sslipio {
     }
 
     impl IpProvider for SslipIoIpProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, is_v6: bool) -> Result<IpAddr> {
             let client = DnsClient::new(
                 &self.name_server_host,

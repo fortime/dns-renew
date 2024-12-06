@@ -55,18 +55,20 @@ fn init_config(args: &Args) -> Result<Config> {
     Ok(figment.extract()?)
 }
 
-fn init_log(_args: &Args) -> Result<()> {
-    tracing_subscriber::registry()
-        .with(fmt::layer())
-        .with(EnvFilter::from_default_env())
-        .try_init()?;
+fn init_log(config: &Config) -> Result<()> {
+    let subscriber = tracing_subscriber::registry().with(EnvFilter::from_default_env());
+    if config.log_timestamp().unwrap_or(true) {
+        subscriber.with(fmt::layer()).try_init()?;
+    } else {
+        subscriber.with(fmt::layer().without_time()).try_init()?;
+    }
     Ok(())
 }
 
 fn run(args: Args) -> Result<()> {
     let config = init_config(&args)?;
 
-    init_log(&args)?;
+    init_log(&config)?;
 
     let childrens = config
         .name_conf_dir()
@@ -74,10 +76,19 @@ fn run(args: Args) -> Result<()> {
         .with_context(|| format!("{:?} not found", config.name_conf_dir()))?;
 
     for child in childrens {
-        let path = child.as_ref().map(|p| p.path().clone()).ok();
-        match renew_name(child, &config) {
+        let span = tracing::info_span!(
+            "renew_name",
+            path = child
+                .as_ref()
+                .ok()
+                .and_then(|c| c.path().to_str().map(ToString::to_string))
+                .unwrap_or_else(|| "invalid path".to_string())
+        );
+        let _enter = span.enter();
+
+        match renew_name(&args, child, &config) {
             Ok(Some(name)) => tracing::info!("renew {name} successfully"),
-            Ok(None) => tracing::debug!("skip path: {:?}", path),
+            Ok(None) => tracing::info!("skip path"),
             Err(e) => tracing::error!("failed to renew: {:?}", e),
         }
     }
@@ -130,7 +141,7 @@ fn read_state(state_path: &PathBuf, name_conf: &NameConf) -> Result<Option<NameS
     Ok(Some(name_state))
 }
 
-fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<String>> {
+fn renew_name(args: &Args, entry: io::Result<DirEntry>, config: &Config) -> Result<Option<String>> {
     let entry = entry?;
     let conf_path = entry.path();
     if !(entry.file_type()?.is_file()
@@ -182,11 +193,11 @@ fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<Str
     let mut updated = false;
 
     if let Some(name_providers_conf) = v4_name_providers_conf {
-        updated |= renew(&name_conf, name_providers_conf, config, false)?;
+        updated |= renew(args, &name_conf, name_providers_conf, config, false)?;
     }
 
     if let Some(name_providers_conf) = v6_name_providers_conf {
-        updated |= renew(&name_conf, name_providers_conf, config, true)?;
+        updated |= renew(args, &name_conf, name_providers_conf, config, true)?;
     }
 
     fs::write(&state_path, toml::to_string(&name_state)?)?;
@@ -198,7 +209,9 @@ fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<Str
     }
 }
 
+#[tracing::instrument(skip(args, name_conf, name_providers_conf, config), fields(name = name_conf.name()), err, ret)]
 fn renew(
+    args: &Args,
     name_conf: &NameConf,
     name_providers_conf: &NameProvidersConf,
     config: &Config,
@@ -218,6 +231,10 @@ fn renew(
         return Ok(false);
     }
 
+    tracing::info!("{} is not in {:?}, ready to update", ip, ips);
+    if args.dry_run {
+        return Ok(false);
+    }
     let update_provider =
         update::init_update_provider(name_providers_conf.update_provider_type(), config)?;
     update_provider.update(name_conf.name(), ip)

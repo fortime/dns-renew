@@ -41,6 +41,7 @@ mod dohgoogle {
     }
 
     impl QueryProvider for DohGoogleQueryProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, name: &str, _is_v6: bool) -> Result<Vec<IpAddr>> {
             let url = Url::parse_with_params(&self.url, &[(&self.name_key, name)])?;
             let response_body = Client::new()
@@ -85,6 +86,7 @@ mod dns {
     }
 
     impl QueryProvider for DnsQueryProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, name: &str, is_v6: bool) -> Result<Vec<IpAddr>> {
             super::query(
                 &self.name_server_host,
@@ -117,6 +119,7 @@ mod dohietf {
     }
 
     impl QueryProvider for DohIetfQueryProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, name: &str, is_v6: bool) -> Result<Vec<IpAddr>> {
             let record_type = if is_v6 {
                 RecordType::AAAA
@@ -189,6 +192,7 @@ mod dot {
     }
 
     impl QueryProvider for DotQueryProvider {
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, name: &str, is_v6: bool) -> Result<Vec<IpAddr>> {
             super::query(
                 &self.name_server_host,
