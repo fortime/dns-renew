@@ -86,7 +86,7 @@ fn run(args: Args) -> Result<()> {
         );
         let _enter = span.enter();
 
-        match renew_name(child, &config) {
+        match renew_name(&args, child, &config) {
             Ok(Some(name)) => tracing::info!("renew {name} successfully"),
             Ok(None) => tracing::info!("skip path"),
             Err(e) => tracing::error!("failed to renew: {:?}", e),
@@ -141,7 +141,7 @@ fn read_state(state_path: &PathBuf, name_conf: &NameConf) -> Result<Option<NameS
     Ok(Some(name_state))
 }
 
-fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<String>> {
+fn renew_name(args: &Args, entry: io::Result<DirEntry>, config: &Config) -> Result<Option<String>> {
     let entry = entry?;
     let conf_path = entry.path();
     if !(entry.file_type()?.is_file()
@@ -193,11 +193,11 @@ fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<Str
     let mut updated = false;
 
     if let Some(name_providers_conf) = v4_name_providers_conf {
-        updated |= renew(&name_conf, name_providers_conf, config, false)?;
+        updated |= renew(args, &name_conf, name_providers_conf, config, false)?;
     }
 
     if let Some(name_providers_conf) = v6_name_providers_conf {
-        updated |= renew(&name_conf, name_providers_conf, config, true)?;
+        updated |= renew(args, &name_conf, name_providers_conf, config, true)?;
     }
 
     fs::write(&state_path, toml::to_string(&name_state)?)?;
@@ -209,7 +209,7 @@ fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<Str
     }
 }
 
-#[tracing::instrument(skip(name_conf, name_providers_conf, config), fields(name = name_conf.name()))]
+#[tracing::instrument(skip(args, name_conf, name_providers_conf, config), fields(name = name_conf.name()), err, ret)]
 fn renew(
     args: &Args,
     name_conf: &NameConf,
@@ -232,6 +232,9 @@ fn renew(
     }
 
     tracing::info!("{} is not in {:?}, ready to update", ip, ips);
+    if args.dry_run {
+        return Ok(false);
+    }
     let update_provider =
         update::init_update_provider(name_providers_conf.update_provider_type(), config)?;
     update_provider.update(name_conf.name(), ip)
