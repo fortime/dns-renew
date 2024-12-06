@@ -31,7 +31,9 @@ mod dohgoogle {
 
     #[derive(Deserialize)]
     struct DohGoogleAnswer {
-        data: IpAddr,
+        #[serde(rename = "type")]
+        record_type: u32,
+        data: String,
     }
 
     pub(super) struct DohGoogleQueryProvider {
@@ -65,7 +67,19 @@ mod dohgoogle {
                 .answer
                 .unwrap_or_default()
                 .iter()
-                .map(|i| i.data)
+                .filter_map(|i| {
+                    if i.record_type == 1 || i.record_type == 28 {
+                        i.data
+                            .parse::<IpAddr>()
+                            .inspect_err(|_| {
+                                tracing::warn!("{} is not a valid ip", i.data);
+                            })
+                            .ok()
+                    } else {
+                        // Skip unknown type
+                        None
+                    }
+                })
                 .collect())
         }
     }
