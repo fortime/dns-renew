@@ -21,6 +21,7 @@ mod httpget {
     }
 
     impl UpdateProvider for HttpGetUpdateProvider {
+        #[tracing::instrument(skip(self), err)]
         fn update(&self, name: &str, ip: IpAddr) -> Result<bool> {
             let mut vars = HashMap::new();
             let ip = ip.to_string();
@@ -65,6 +66,7 @@ mod httpplainbody {
     }
 
     impl UpdateProvider for HttpPlainBodyUpdateProvider {
+        #[tracing::instrument(skip(self), err)]
         fn update(&self, name: &str, ip: IpAddr) -> Result<bool> {
             let mut vars = HashMap::new();
             let ip = ip.to_string();
@@ -193,6 +195,7 @@ mod cloudflare {
             Ok(response)
         }
 
+        #[tracing::instrument(skip(self), err)]
         fn query(&self, name: &str, is_v6: bool) -> Result<Option<DnsRecord>> {
             let mut vars = HashMap::new();
             vars.insert("zone_id".to_string(), self.zone_id.as_str());
@@ -209,6 +212,7 @@ mod cloudflare {
             Ok(response.result.pop())
         }
 
+        #[tracing::instrument(skip(self), err)]
         fn create(&self, name: &str, ip: IpAddr) -> Result<()> {
             let mut vars = HashMap::new();
             vars.insert("zone_id".to_string(), self.zone_id.as_str());
@@ -235,6 +239,7 @@ mod cloudflare {
             Ok(())
         }
 
+        #[tracing::instrument(skip(self, old), err)]
         fn update(&self, mut old: DnsRecord, ip: IpAddr) -> Result<()> {
             let id = if let Some(id) = old.id.take() {
                 id
@@ -269,6 +274,7 @@ mod cloudflare {
     }
 
     impl UpdateProvider for CloudflareUpdateProvider {
+        #[tracing::instrument(skip(self), err)]
         fn update(&self, name: &str, ip: IpAddr) -> Result<bool> {
             match self.query(name, ip.is_ipv6())? {
                 Some(old) => {

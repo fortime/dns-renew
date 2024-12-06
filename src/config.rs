@@ -12,6 +12,9 @@ pub struct Config {
     name_state_dir: PathBuf,
 
     #[getset(get = "pub")]
+    log_timestamp: Option<bool>,
+
+    #[getset(get = "pub")]
     update_credentials: HashMap<String, UpdateCredential>,
 }
 
