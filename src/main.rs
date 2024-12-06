@@ -211,6 +211,7 @@ fn renew_name(entry: io::Result<DirEntry>, config: &Config) -> Result<Option<Str
 
 #[tracing::instrument(skip(name_conf, name_providers_conf, config), fields(name = name_conf.name()))]
 fn renew(
+    args: &Args,
     name_conf: &NameConf,
     name_providers_conf: &NameProvidersConf,
     config: &Config,
