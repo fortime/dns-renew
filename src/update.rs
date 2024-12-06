@@ -107,7 +107,7 @@ mod cloudflare {
 
     #[derive(Deserialize, Serialize)]
     struct DnsRecord {
-        comment: String,
+        comment: Option<String>,
         name: String,
         proxied: bool,
         ttl: u32,
@@ -216,7 +216,7 @@ mod cloudflare {
             tracing::debug!("url after rendered: {}", url);
 
             let request = DnsRecord {
-                comment: self.comment.clone().unwrap_or_default(),
+                comment: self.comment.clone(),
                 name: name.to_string(),
                 proxied: self.proxied,
                 ttl: self.ttl.unwrap_or(300),
@@ -254,9 +254,7 @@ mod cloudflare {
                     old.ttl = *ttl;
                 }
             }
-            if let Some(comment) = &self.comment {
-                old.comment = comment.clone();
-            }
+            old.comment = self.comment.clone();
 
             let req_builder = Client::new()
                 .put(url)
@@ -281,11 +279,7 @@ mod cloudflare {
                             // with proxied, the ttl can't be changed.
                             .map(|t| !self.proxied && t != old.ttl)
                             .unwrap_or(false)
-                        || self
-                            .comment
-                            .as_ref()
-                            .map(|c| *c != old.comment)
-                            .unwrap_or(false)
+                        || self.comment != old.comment
                     {
                         self.update(old, ip)?
                     } else {
