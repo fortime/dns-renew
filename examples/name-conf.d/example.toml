@@ -60,4 +60,4 @@ ip = "fe80::123:123:123:123"
 [v6.update_provider_type]
 type = "HttpGet"
 credential = "dhis"
-url_template = "https://is6.dhis.org/update?Update6to4V4=No?ipaddr={ip}"
+url_template = "https://is6.dhis.org/update?Update6to4V4=No&ipaddr={ip}"
