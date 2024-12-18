@@ -38,14 +38,23 @@ mod dohgoogle {
 
     pub(super) struct DohGoogleQueryProvider {
         pub(super) url: String,
-        pub(super) name_key: String,
+        pub(super) name_key: Option<String>,
+        pub(super) type_key: Option<String>,
         pub(super) timeout: Duration,
     }
 
     impl QueryProvider for DohGoogleQueryProvider {
         #[tracing::instrument(skip(self), err)]
-        fn query(&self, name: &str, _is_v6: bool) -> Result<Vec<IpAddr>> {
-            let url = Url::parse_with_params(&self.url, &[(&self.name_key, name)])?;
+        fn query(&self, name: &str, is_v6: bool) -> Result<Vec<IpAddr>> {
+            let name_key = self.name_key.as_deref().unwrap_or("name");
+            let type_key = self.type_key.as_deref().unwrap_or("type");
+            let url = Url::parse_with_params(
+                &self.url,
+                &[
+                    (name_key, name),
+                    (type_key, if is_v6 { "AAAA" } else { "A" }),
+                ],
+            )?;
             let response_body = Client::new()
                 .get(url.clone())
                 .timeout(self.timeout)
@@ -269,6 +278,7 @@ pub fn init_query_provider(
             Ok(Box::new(DohGoogleQueryProvider {
                 url: doh_google_query_params.url().clone(),
                 name_key: doh_google_query_params.name_key().clone(),
+                type_key: doh_google_query_params.type_key().clone(),
                 timeout: doh_google_query_params.timeout().unwrap_or(DEFAULT_TIMEOUT),
             }))
         }

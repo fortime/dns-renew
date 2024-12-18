@@ -114,7 +114,9 @@ pub struct DohGoogleQueryParams {
     #[getset(get = "pub")]
     url: String,
     #[getset(get = "pub")]
-    name_key: String,
+    name_key: Option<String>,
+    #[getset(get = "pub")]
+    type_key: Option<String>,
     #[getset(get_copy = "pub")]
     #[serde(default, with = "humantime_serde")]
     timeout: Option<Duration>,
